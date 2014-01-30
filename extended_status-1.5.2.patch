@@ -227,10 +227,10 @@ diff -ur nginx-1.5.2/src/event/ngx_event.c nginx-1.5.2_extended_status/src/event
 +
 +    ngx_num_workers = ccf->worker_processes;
 +
-+    workers = (worker_score *) (shared + 9 * cl);
++    workers = (worker_score *) (shared + 10 * cl);
 +    init_workers(workers);
 +
-+    conns = (conn_score *) (shared + 9 * cl + ccf->worker_processes * WORKER_SCORE_LEN);
++    conns = (conn_score *) (shared + 10 * cl + ccf->worker_processes * WORKER_SCORE_LEN);
 +
 +#endif
 +
