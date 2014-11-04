@@ -1,22 +1,3 @@
-From bcd160abfb1542685ff18355c8507b1d2d4f3851 Mon Sep 17 00:00:00 2001
-From: Jonathan Seidner <jonathan@crosswise.com>
-Date: Tue, 4 Nov 2014 19:49:15 +0200
-Subject: [PATCH] extended stats patch for v1.6.2
-
----
- src/core/ngx_connection.c                      |   3 +
- src/core/ngx_connection.h                      |   5 +
- src/event/ngx_event.c                          | 113 +++++++++++++++++++-
- src/event/ngx_event.h                          |  88 +++++++++++++++-
- src/event/ngx_event_accept.c                   |  18 +++-
- src/http/modules/ngx_http_gzip_filter_module.c |   9 ++
- src/http/ngx_http_request.c                    | 136 ++++++++++++++++++++++++-
- src/http/ngx_http_request.h                    |   2 +-
- src/os/unix/ngx_process.c                      |   4 +
- src/os/unix/ngx_process.h                      |   4 +
- src/os/unix/ngx_process_cycle.c                |  83 +++++++++++++++
- 11 files changed, 451 insertions(+), 14 deletions(-)
-
 diff --git nginx-1.6.2/src/core/ngx_connection.c nginx-1.6.2_extended_status/src/core/ngx_connection.c
 index 6b6e3b3..44dc5bc 100644
 --- nginx-1.6.2/src/core/ngx_connection.c
