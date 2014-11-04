@@ -1,7 +1,7 @@
-diff --git nginx-1.6.2/src/core/ngx_connection.c nginx-1.6.2_extended_status/src/core/ngx_connection.c
+diff --git a/src/core/ngx_connection.c b/src/core/ngx_connection.c
 index 6b6e3b3..44dc5bc 100644
---- nginx-1.6.2/src/core/ngx_connection.c
-+++ nginx-1.6.2_extended_status/src/core/ngx_connection.c
+--- a/src/core/ngx_connection.c
++++ b/src/core/ngx_connection.c
 @@ -824,6 +824,9 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
      ngx_uint_t         instance;
      ngx_event_t       *rev, *wev;
@@ -12,10 +12,10 @@ index 6b6e3b3..44dc5bc 100644
  
      /* disable warning: Win32 SOCKET is u_int while UNIX socket is int */
  
-diff --git nginx-1.6.2/src/core/ngx_connection.h nginx-1.6.2_extended_status/src/core/ngx_connection.h
+diff --git a/src/core/ngx_connection.h b/src/core/ngx_connection.h
 index ed14e60..21b6b38 100644
---- nginx-1.6.2/src/core/ngx_connection.h
-+++ nginx-1.6.2_extended_status/src/core/ngx_connection.h
+--- a/src/core/ngx_connection.h
++++ b/src/core/ngx_connection.h
 @@ -116,6 +116,11 @@ typedef enum {
  
  
@@ -28,10 +28,10 @@ index ed14e60..21b6b38 100644
      void               *data;
      ngx_event_t        *read;
      ngx_event_t        *write;
-diff --git nginx-1.6.2/src/event/ngx_event.c nginx-1.6.2_extended_status/src/event/ngx_event.c
+diff --git a/src/event/ngx_event.c b/src/event/ngx_event.c
 index e2857f0..70542c3 100644
---- nginx-1.6.2/src/event/ngx_event.c
-+++ nginx-1.6.2_extended_status/src/event/ngx_event.c
+--- a/src/event/ngx_event.c
++++ b/src/event/ngx_event.c
 @@ -58,7 +58,7 @@ ngx_msec_t            ngx_accept_mutex_delay;
  ngx_int_t             ngx_accept_disabled;
  
@@ -209,10 +209,10 @@ index e2857f0..70542c3 100644
      cycle->read_events = ngx_alloc(sizeof(ngx_event_t) * cycle->connection_n,
                                     cycle->log);
      if (cycle->read_events == NULL) {
-diff --git nginx-1.6.2/src/event/ngx_event.h nginx-1.6.2_extended_status/src/event/ngx_event.h
+diff --git a/src/event/ngx_event.h b/src/event/ngx_event.h
 index 530c948..f62b71f 100644
---- nginx-1.6.2/src/event/ngx_event.h
-+++ nginx-1.6.2_extended_status/src/event/ngx_event.h
+--- a/src/event/ngx_event.h
++++ b/src/event/ngx_event.h
 @@ -8,7 +8,9 @@
  #ifndef _NGX_EVENT_H_INCLUDED_
  #define _NGX_EVENT_H_INCLUDED_
@@ -322,10 +322,10 @@ index 530c948..f62b71f 100644
  
  #define NGX_UPDATE_TIME         1
  #define NGX_POST_EVENTS         2
-diff --git nginx-1.6.2/src/event/ngx_event_accept.c nginx-1.6.2_extended_status/src/event/ngx_event_accept.c
+diff --git a/src/event/ngx_event_accept.c b/src/event/ngx_event_accept.c
 index bf67ece..b6c2413 100644
---- nginx-1.6.2/src/event/ngx_event_accept.c
-+++ nginx-1.6.2_extended_status/src/event/ngx_event_accept.c
+--- a/src/event/ngx_event_accept.c
++++ b/src/event/ngx_event_accept.c
 @@ -134,7 +134,7 @@ ngx_event_accept(ngx_event_t *ev)
              return;
          }
@@ -377,10 +377,10 @@ index bf67ece..b6c2413 100644
  }
  
  
-diff --git nginx-1.6.2/src/http/modules/ngx_http_gzip_filter_module.c nginx-1.6.2_extended_status/src/http/modules/ngx_http_gzip_filter_module.c
+diff --git a/src/http/modules/ngx_http_gzip_filter_module.c b/src/http/modules/ngx_http_gzip_filter_module.c
 index ea1f1d0..27bfb42 100644
---- nginx-1.6.2/src/http/modules/ngx_http_gzip_filter_module.c
-+++ nginx-1.6.2_extended_status/src/http/modules/ngx_http_gzip_filter_module.c
+--- a/src/http/modules/ngx_http_gzip_filter_module.c
++++ b/src/http/modules/ngx_http_gzip_filter_module.c
 @@ -856,6 +856,15 @@ ngx_http_gzip_filter_deflate(ngx_http_request_t *r, ngx_http_gzip_ctx_t *ctx)
  
          r->connection->buffered &= ~NGX_HTTP_GZIP_BUFFERED;
@@ -397,10 +397,10 @@ index ea1f1d0..27bfb42 100644
          return NGX_OK;
      }
  
-diff --git nginx-1.6.2/src/http/ngx_http_request.c nginx-1.6.2_extended_status/src/http/ngx_http_request.c
+diff --git a/src/http/ngx_http_request.c b/src/http/ngx_http_request.c
 index 845ada3..6ae0ca8 100644
---- nginx-1.6.2/src/http/ngx_http_request.c
-+++ nginx-1.6.2_extended_status/src/http/ngx_http_request.c
+--- a/src/http/ngx_http_request.c
++++ b/src/http/ngx_http_request.c
 @@ -601,12 +601,23 @@ ngx_http_create_request(ngx_connection_t *c)
      ctx->current_request = r;
      r->log_handler = ngx_http_log_error_handler;
@@ -607,10 +607,10 @@ index 845ada3..6ae0ca8 100644
      c->destroyed = 1;
  
      pool = c->pool;
-diff --git nginx-1.6.2/src/http/ngx_http_request.h nginx-1.6.2_extended_status/src/http/ngx_http_request.h
+diff --git a/src/http/ngx_http_request.h b/src/http/ngx_http_request.h
 index 705c4e9..2d58d36 100644
---- nginx-1.6.2/src/http/ngx_http_request.h
-+++ nginx-1.6.2_extended_status/src/http/ngx_http_request.h
+--- a/src/http/ngx_http_request.h
++++ b/src/http/ngx_http_request.h
 @@ -530,7 +530,7 @@ struct ngx_http_request_s {
      unsigned                          allow_ranges:1;
      unsigned                          single_range:1;
@@ -620,10 +620,10 @@ index 705c4e9..2d58d36 100644
      unsigned                          stat_reading:1;
      unsigned                          stat_writing:1;
  #endif
-diff --git nginx-1.6.2/src/os/unix/ngx_process.c nginx-1.6.2_extended_status/src/os/unix/ngx_process.c
+diff --git a/src/os/unix/ngx_process.c b/src/os/unix/ngx_process.c
 index 6f3f385..8d1bbb9 100644
---- nginx-1.6.2/src/os/unix/ngx_process.c
-+++ nginx-1.6.2_extended_status/src/os/unix/ngx_process.c
+--- a/src/os/unix/ngx_process.c
++++ b/src/os/unix/ngx_process.c
 @@ -35,6 +35,10 @@ ngx_socket_t     ngx_channel;
  ngx_int_t        ngx_last_process;
  ngx_process_t    ngx_processes[NGX_MAX_PROCESSES];
@@ -635,10 +635,10 @@ index 6f3f385..8d1bbb9 100644
  
  ngx_signal_t  signals[] = {
      { ngx_signal_value(NGX_RECONFIGURE_SIGNAL),
-diff --git nginx-1.6.2/src/os/unix/ngx_process.h nginx-1.6.2_extended_status/src/os/unix/ngx_process.h
+diff --git a/src/os/unix/ngx_process.h b/src/os/unix/ngx_process.h
 index 7b5e8c0..705e709 100644
---- nginx-1.6.2/src/os/unix/ngx_process.h
-+++ nginx-1.6.2_extended_status/src/os/unix/ngx_process.h
+--- a/src/os/unix/ngx_process.h
++++ b/src/os/unix/ngx_process.h
 @@ -84,5 +84,9 @@ extern ngx_int_t      ngx_process_slot;
  extern ngx_int_t      ngx_last_process;
  extern ngx_process_t  ngx_processes[NGX_MAX_PROCESSES];
@@ -649,10 +649,10 @@ index 7b5e8c0..705e709 100644
 +#endif
  
  #endif /* _NGX_PROCESS_H_INCLUDED_ */
-diff --git nginx-1.6.2/src/os/unix/ngx_process_cycle.c nginx-1.6.2_extended_status/src/os/unix/ngx_process_cycle.c
+diff --git a/src/os/unix/ngx_process_cycle.c b/src/os/unix/ngx_process_cycle.c
 index be55cea..a5e3334 100644
---- nginx-1.6.2/src/os/unix/ngx_process_cycle.c
-+++ nginx-1.6.2_extended_status/src/os/unix/ngx_process_cycle.c
+--- a/src/os/unix/ngx_process_cycle.c
++++ b/src/os/unix/ngx_process_cycle.c
 @@ -237,6 +237,15 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
  
              ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "reconfiguring");
@@ -757,6 +757,3 @@ index be55cea..a5e3334 100644
  #if (NGX_THREADS)
      {
      ngx_int_t         n;
--- 
-2.1.3
-

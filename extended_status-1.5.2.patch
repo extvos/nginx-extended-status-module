@@ -1,7 +1,8 @@
-diff -ur nginx-1.5.2/src/core/ngx_connection.c nginx-1.5.2_extended_status/src/core/ngx_connection.c
---- nginx-1.5.2/src/core/ngx_connection.c	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/core/ngx_connection.c	2013-07-26 08:17:34.436559791 +0200
-@@ -760,6 +760,9 @@
+diff --git a/src/core/ngx_connection.c b/src/core/ngx_connection.c
+index 9afb952..e9c9007 100644
+--- a/src/core/ngx_connection.c
++++ b/src/core/ngx_connection.c
+@@ -550,6 +550,9 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
      ngx_uint_t         instance;
      ngx_event_t       *rev, *wev;
      ngx_connection_t  *c;
@@ -11,7 +12,7 @@ diff -ur nginx-1.5.2/src/core/ngx_connection.c nginx-1.5.2_extended_status/src/c
  
      /* disable warning: Win32 SOCKET is u_int while UNIX socket is int */
  
-@@ -802,8 +805,16 @@
+@@ -587,8 +590,16 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
      rev = c->read;
      wev = c->write;
  
@@ -28,10 +29,11 @@ diff -ur nginx-1.5.2/src/core/ngx_connection.c nginx-1.5.2_extended_status/src/c
      c->read = rev;
      c->write = wev;
      c->fd = s;
-diff -ur nginx-1.5.2/src/core/ngx_connection.h nginx-1.5.2_extended_status/src/core/ngx_connection.h
---- nginx-1.5.2/src/core/ngx_connection.h	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/core/ngx_connection.h	2013-07-26 08:17:34.436559792 +0200
-@@ -111,6 +111,11 @@
+diff --git a/src/core/ngx_connection.h b/src/core/ngx_connection.h
+index 1694dd4..b3ee586 100644
+--- a/src/core/ngx_connection.h
++++ b/src/core/ngx_connection.h
+@@ -97,6 +97,11 @@ typedef enum {
  
  
  struct ngx_connection_s {
@@ -43,64 +45,11 @@ diff -ur nginx-1.5.2/src/core/ngx_connection.h nginx-1.5.2_extended_status/src/c
      void               *data;
      ngx_event_t        *read;
      ngx_event_t        *write;
-diff -ur nginx-1.5.2/src/event/ngx_event_accept.c nginx-1.5.2_extended_status/src/event/ngx_event_accept.c
---- nginx-1.5.2/src/event/ngx_event_accept.c	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/event/ngx_event_accept.c	2013-07-26 08:17:34.438559537 +0200
-@@ -134,7 +134,7 @@
-             return;
-         }
- 
--#if (NGX_STAT_STUB)
-+#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
-         (void) ngx_atomic_fetch_add(ngx_stat_accepted, 1);
- #endif
- 
-@@ -152,10 +152,15 @@
-             return;
-         }
- 
--#if (NGX_STAT_STUB)
-+#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
-         (void) ngx_atomic_fetch_add(ngx_stat_active, 1);
- #endif
- 
-+#if (NGX_STAT_EXTENDED)
-+        set_conn_active(c);
-+        set_conn_mode(c, SERVER_READY);
-+#endif
-+
-         c->pool = ngx_create_pool(ls->pool_size, ev->log);
-         if (c->pool == NULL) {
-             ngx_close_accepted_connection(c);
-@@ -257,7 +262,7 @@
- 
-         c->number = ngx_atomic_fetch_add(ngx_connection_counter, 1);
- 
--#if (NGX_STAT_STUB)
-+#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
-         (void) ngx_atomic_fetch_add(ngx_stat_handled, 1);
- #endif
- 
-@@ -491,9 +496,14 @@
-         ngx_destroy_pool(c->pool);
-     }
- 
--#if (NGX_STAT_STUB)
-+#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
-     (void) ngx_atomic_fetch_add(ngx_stat_active, -1);
- #endif
-+
-+#if (NGX_STAT_EXTENDED)
-+    set_conn_inactive(c);
-+    set_conn_mode(c, SERVER_DEAD);
-+#endif
- }
- 
- 
-diff -ur nginx-1.5.2/src/event/ngx_event.c nginx-1.5.2_extended_status/src/event/ngx_event.c
---- nginx-1.5.2/src/event/ngx_event.c	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/event/ngx_event.c	2013-07-26 08:17:34.439559409 +0200
-@@ -59,7 +59,7 @@
+diff --git a/src/event/ngx_event.c b/src/event/ngx_event.c
+index 563186e..bafc3ff 100644
+--- a/src/event/ngx_event.c
++++ b/src/event/ngx_event.c
+@@ -57,7 +57,7 @@ ngx_int_t             ngx_accept_disabled;
  ngx_file_t            ngx_accept_mutex_lock_file;
  
  
@@ -109,7 +58,7 @@ diff -ur nginx-1.5.2/src/event/ngx_event.c nginx-1.5.2_extended_status/src/event
  
  ngx_atomic_t   ngx_stat_accepted0;
  ngx_atomic_t  *ngx_stat_accepted = &ngx_stat_accepted0;
-@@ -78,7 +78,15 @@
+@@ -74,7 +74,15 @@ ngx_atomic_t  *ngx_stat_writing = &ngx_stat_writing0;
  
  #endif
  
@@ -125,7 +74,7 @@ diff -ur nginx-1.5.2/src/event/ngx_event.c nginx-1.5.2_extended_status/src/event
  
  static ngx_command_t  ngx_events_commands[] = {
  
-@@ -346,6 +354,40 @@
+@@ -342,6 +350,40 @@ ngx_handle_read_event(ngx_event_t *rev, u_int flags)
      return NGX_OK;
  }
  
@@ -166,7 +115,7 @@ diff -ur nginx-1.5.2/src/event/ngx_event.c nginx-1.5.2_extended_status/src/event
  
  ngx_int_t
  ngx_handle_write_event(ngx_event_t *wev, size_t lowat)
-@@ -494,7 +536,13 @@
+@@ -484,7 +526,13 @@ ngx_event_module_init(ngx_cycle_t *cycle)
      }
  
      if (ngx_accept_mutex_ptr) {
@@ -180,16 +129,16 @@ diff -ur nginx-1.5.2/src/event/ngx_event.c nginx-1.5.2_extended_status/src/event
      }
  
  
-@@ -506,7 +554,7 @@
-            + cl          /* ngx_connection_counter */
-            + cl;         /* ngx_temp_number */
+@@ -495,7 +543,7 @@ ngx_event_module_init(ngx_cycle_t *cycle)
+     size = cl            /* ngx_accept_mutex */
+            + cl;         /* ngx_connection_counter */
  
 -#if (NGX_STAT_STUB)
 +#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
  
      size += cl           /* ngx_stat_accepted */
             + cl          /* ngx_stat_handled */
-@@ -518,6 +566,20 @@
+@@ -506,6 +554,20 @@ ngx_event_module_init(ngx_cycle_t *cycle)
  
  #endif
  
@@ -208,18 +157,18 @@ diff -ur nginx-1.5.2/src/event/ngx_event.c nginx-1.5.2_extended_status/src/event
 +#endif
 +
      shm.size = size;
-     shm.name.len = sizeof("nginx_shared_zone");
-     shm.name.data = (u_char *) "nginx_shared_zone";
-@@ -553,7 +615,7 @@
+     shm.log = cycle->log;
  
-     ngx_random_number = (tp->msec << 16) + ngx_pid;
+@@ -525,7 +587,7 @@ ngx_event_module_init(ngx_cycle_t *cycle)
+ 
+     ngx_connection_counter = (ngx_atomic_t *) (shared + 1 * cl);
  
 -#if (NGX_STAT_STUB)
 +#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
  
-     ngx_stat_accepted = (ngx_atomic_t *) (shared + 3 * cl);
-     ngx_stat_handled = (ngx_atomic_t *) (shared + 4 * cl);
-@@ -565,6 +627,17 @@
+     ngx_stat_accepted = (ngx_atomic_t *) (shared + 2 * cl);
+     ngx_stat_handled = (ngx_atomic_t *) (shared + 3 * cl);
+@@ -1083,6 +1145,17 @@ ngx_event_debug_connection(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
  
  #endif
  
@@ -237,48 +186,11 @@ diff -ur nginx-1.5.2/src/event/ngx_event.c nginx-1.5.2_extended_status/src/event
      return NGX_OK;
  }
  
-@@ -703,6 +776,37 @@
- 
-     c = cycle->connections;
- 
-+#if (NGX_STAT_EXTENDED)
-+    {
-+        ngx_time_t  *tp;
-+        conn_score  *cs;
-+        ngx_uint_t    i;
-+
-+        for (i = 0; i < cycle->connection_n; i++) 
-+        {
-+            c [i].cs = (void *) ((char *) conns +
-+                                 sizeof(conn_score) * (ngx_process_slot * cycle->connection_n + i));
-+            cs = (conn_score *) c[i].cs;
-+            
-+            cs->bytes_sent = 0;
-+            cs->access_count = 0;
-+            cs->response_time = 0;
-+            cs->upstream_response_time = -1;
-+            cs->request[0] = '\0';
-+            cs->client[0] = '\0';
-+            cs->vhost[0] = '\0';
-+            cs->mode = SERVER_READY;
-+            
-+            tp = ngx_timeofday();
-+            cs->last_used = tp->sec;
-+            cs->status = 0;
-+            cs->zin = 0;
-+            cs->zout = 0;
-+            cs->active = 0;
-+        }
-+    }
-+#endif
-+
-     cycle->read_events = ngx_alloc(sizeof(ngx_event_t) * cycle->connection_n,
-                                    cycle->log);
-     if (cycle->read_events == NULL) {
-diff -ur nginx-1.5.2/src/event/ngx_event.h nginx-1.5.2_extended_status/src/event/ngx_event.h
---- nginx-1.5.2/src/event/ngx_event.h	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/event/ngx_event.h	2013-07-26 08:17:34.440559281 +0200
-@@ -8,7 +8,9 @@
+diff --git a/src/event/ngx_event.h b/src/event/ngx_event.h
+index e1388d5..8e35cf7 100644
+--- a/src/event/ngx_event.h
++++ b/src/event/ngx_event.h
+@@ -7,7 +7,9 @@
  #ifndef _NGX_EVENT_H_INCLUDED_
  #define _NGX_EVENT_H_INCLUDED_
  
@@ -289,7 +201,7 @@ diff -ur nginx-1.5.2/src/event/ngx_event.h nginx-1.5.2_extended_status/src/event
  #include <ngx_config.h>
  #include <ngx_core.h>
  
-@@ -503,7 +505,7 @@
+@@ -455,7 +457,7 @@ extern ngx_msec_t             ngx_accept_mutex_delay;
  extern ngx_int_t              ngx_accept_disabled;
  
  
@@ -298,7 +210,7 @@ diff -ur nginx-1.5.2/src/event/ngx_event.h nginx-1.5.2_extended_status/src/event
  
  extern ngx_atomic_t  *ngx_stat_accepted;
  extern ngx_atomic_t  *ngx_stat_handled;
-@@ -515,6 +517,87 @@
+@@ -466,6 +468,87 @@ extern ngx_atomic_t  *ngx_stat_writing;
  
  #endif
  
@@ -386,12 +298,13 @@ diff -ur nginx-1.5.2/src/event/ngx_event.h nginx-1.5.2_extended_status/src/event
  
  #define NGX_UPDATE_TIME         1
  #define NGX_POST_EVENTS         2
-diff -ur nginx-1.5.2/src/http/modules/ngx_http_gzip_filter_module.c nginx-1.5.2_extended_status/src/http/modules/ngx_http_gzip_filter_module.c
---- nginx-1.5.2/src/http/modules/ngx_http_gzip_filter_module.c	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/http/modules/ngx_http_gzip_filter_module.c	2013-07-26 08:17:34.440559281 +0200
-@@ -971,6 +971,15 @@
+diff --git a/src/http/modules/ngx_http_gzip_filter_module.c b/src/http/modules/ngx_http_gzip_filter_module.c
+index 7210dd6..fafe46c 100644
+--- a/src/http/modules/ngx_http_gzip_filter_module.c
++++ b/src/http/modules/ngx_http_gzip_filter_module.c
+@@ -970,6 +970,15 @@ ngx_http_gzip_ratio_variable(ngx_http_request_t *r,
  
-     r->connection->buffered &= ~NGX_HTTP_GZIP_BUFFERED;
+     v->len = ngx_sprintf(v->data, "%ui.%02ui", zint, zfrac) - v->data;
  
 +#if (NGX_STAT_EXTENDED)
 +    {
@@ -405,56 +318,12 @@ diff -ur nginx-1.5.2/src/http/modules/ngx_http_gzip_filter_module.c nginx-1.5.2_
      return NGX_OK;
  }
  
-diff -ur nginx-1.5.2/src/http/ngx_http_request.c nginx-1.5.2_extended_status/src/http/ngx_http_request.c
---- nginx-1.5.2/src/http/ngx_http_request.c	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/http/ngx_http_request.c	2013-07-26 08:17:34.443558900 +0200
-@@ -587,12 +587,23 @@
-     ctx->current_request = r;
-     r->log_handler = ngx_http_log_error_handler;
- 
--#if (NGX_STAT_STUB)
-+#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
-     (void) ngx_atomic_fetch_add(ngx_stat_reading, 1);
-     r->stat_reading = 1;
-     (void) ngx_atomic_fetch_add(ngx_stat_requests, 1);
- #endif
- 
-+#if (NGX_STAT_EXTENDED)
-+    {
-+        conn_score  *cs = (conn_score *) c->cs;
-+        ngx_time_t  *tp = ngx_timeofday();
-+
-+        my_worker->mode = SERVER_BUSY_READ;
-+        set_conn_mode(c, SERVER_BUSY_READ);
-+        cs->last_used = tp->sec;
-+    }
-+#endif
-+
-     return r;
- }
- 
-@@ -1837,13 +1848,18 @@
-         ngx_del_timer(c->read);
-     }
- 
--#if (NGX_STAT_STUB)
-+#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
-     (void) ngx_atomic_fetch_add(ngx_stat_reading, -1);
-     r->stat_reading = 0;
-     (void) ngx_atomic_fetch_add(ngx_stat_writing, 1);
-     r->stat_writing = 1;
- #endif
- 
-+#if (NGX_STAT_EXTENDED)
-+    my_worker->mode = SERVER_BUSY_WRITE;
-+    set_conn_mode(c, SERVER_BUSY_WRITE);
-+#endif
-+
-     c->read->handler = ngx_http_request_handler;
-     c->write->handler = ngx_http_request_handler;
-     r->read_event_handler = ngx_http_block_reading;
-@@ -3289,6 +3305,60 @@
-     return NGX_OK;
+diff --git a/src/http/ngx_http_request.c b/src/http/ngx_http_request.c
+index 2c1ac95..368eae2 100644
+--- a/src/http/ngx_http_request.c
++++ b/src/http/ngx_http_request.c
+@@ -2345,6 +2345,60 @@ ngx_http_request_done(ngx_http_request_t *r, ngx_int_t error)
+     ngx_destroy_pool(r->pool);
  }
  
 +#if (NGX_STAT_EXTENDED)
@@ -513,92 +382,9 @@ diff -ur nginx-1.5.2/src/http/ngx_http_request.c nginx-1.5.2_extended_status/src
 +#endif
  
  static void
- ngx_http_close_request(ngx_http_request_t *r, ngx_int_t rc)
-@@ -3333,6 +3403,11 @@
-     ngx_http_log_ctx_t        *ctx;
-     ngx_http_core_loc_conf_t  *clcf;
- 
-+#if (NGX_STAT_EXTENDED)
-+    conn_score  *cs = r->connection->cs;
-+    ngx_time_t  *tp ;
-+#endif
-+
-     log = r->connection->log;
- 
-     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, log, 0, "http close request");
-@@ -3348,7 +3423,7 @@
-         }
-     }
- 
--#if (NGX_STAT_STUB)
-+#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
- 
-     if (r->stat_reading) {
-         (void) ngx_atomic_fetch_add(ngx_stat_reading, -1);
-@@ -3366,6 +3441,49 @@
- 
-     log->action = "logging request";
- 
-+#if (NGX_STAT_EXTENDED)
-+    my_worker->mode = SERVER_BUSY_LOG;
-+    set_conn_mode(r->connection, SERVER_BUSY_LOG);
-+
-+    if (0 < r->headers_in.server.len &&  NULL != r->request_line.data) {
-+
-+        tp = ngx_timeofday();
-+
-+        if (my_worker->last_used != tp->sec)
-+            times(&(my_worker->times ));
-+
-+        my_worker->last_used = tp->sec;
-+        cs->last_used = tp->sec;
-+
-+        cs->response_time = get_response_time(tp, r);
-+        cs->upstream_response_time = get_proxy_response_time(r);
-+
-+        my_worker->bytes_sent += r->connection->sent;
-+        cs->bytes_sent = r->connection->sent;
-+
-+        my_worker->access_count++;
-+        cs->access_count++;
-+
-+        update_request_cnt(my_worker, cs, (uint32_t) tp->sec);
-+
-+        cs->status = r->err_status ? r->err_status : r->headers_out.status;
-+
-+        if (NULL != r->connection->addr_text.data) {
-+            ngx_cpystrn(cs->client, r->connection->addr_text.data,
-+                        r->connection->addr_text.len >= SCORE__CLIENT_LEN ?
-+                        SCORE__CLIENT_LEN : (r->connection->addr_text.len + 1));
-+        }
-+        if (0 < r->headers_in.server.len) {
-+            ngx_cpystrn(cs->vhost, r->headers_in.server.data, SCORE__VHOST_LEN <= r->headers_in.server.len ?
-+                        SCORE__VHOST_LEN : (r->headers_in.server.len + 1));
-+        }
-+        if (NULL != r->request_line.data) {
-+            ngx_cpystrn(cs->request, r->request_line.data, r->request_line.len >= SCORE__REQUEST_LEN ?
-+                        SCORE__REQUEST_LEN : (r->request_line.len + 1));
-+        }
-+    }
-+#endif
-+
-     ngx_http_log_request(r);
- 
-     log->action = "closing request";
-@@ -3386,6 +3504,11 @@
-         }
-     }
- 
-+#if (NGX_STAT_EXTENDED)
-+    my_worker->mode = SERVER_READY;
-+    set_conn_mode(r->connection, SERVER_READY);
-+#endif
-+
-     /* the various request strings were allocated from r->pool */
-     ctx = log->data;
-     ctx->request = NULL;
-@@ -3403,6 +3526,8 @@
-     r->pool = NULL;
+ ngx_http_close_connection(ngx_connection_t *c)
+@@ -2376,6 +2430,8 @@ ngx_http_close_connection(ngx_connection_t *c)
+     ngx_close_connection(c);
  
      ngx_destroy_pool(pool);
 +
@@ -606,27 +392,11 @@ diff -ur nginx-1.5.2/src/http/ngx_http_request.c nginx-1.5.2_extended_status/src
  }
  
  
-@@ -3443,10 +3568,15 @@
- 
- #endif
- 
--#if (NGX_STAT_STUB)
-+#if (NGX_STAT_STUB || NGX_STAT_EXTENDED)
-     (void) ngx_atomic_fetch_add(ngx_stat_active, -1);
- #endif
- 
-+#if (NGX_STAT_EXTENDED)
-+    set_conn_inactive(c);
-+    set_conn_mode(c, SERVER_DEAD);
-+#endif
-+
-     c->destroyed = 1;
- 
-     pool = c->pool;
-diff -ur nginx-1.5.2/src/http/ngx_http_request.h nginx-1.5.2_extended_status/src/http/ngx_http_request.h
---- nginx-1.5.2/src/http/ngx_http_request.h	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/http/ngx_http_request.h	2013-07-26 08:17:34.444558773 +0200
-@@ -528,7 +528,7 @@
+diff --git a/src/http/ngx_http_request.h b/src/http/ngx_http_request.h
+index 9df5bd2..e50d46a 100644
+--- a/src/http/ngx_http_request.h
++++ b/src/http/ngx_http_request.h
+@@ -466,7 +466,7 @@ struct ngx_http_request_s {
      unsigned                          filter_need_temporary:1;
      unsigned                          allow_ranges:1;
  
@@ -635,10 +405,11 @@ diff -ur nginx-1.5.2/src/http/ngx_http_request.h nginx-1.5.2_extended_status/src
      unsigned                          stat_reading:1;
      unsigned                          stat_writing:1;
  #endif
-diff -ur nginx-1.5.2/src/os/unix/ngx_process.c nginx-1.5.2_extended_status/src/os/unix/ngx_process.c
---- nginx-1.5.2/src/os/unix/ngx_process.c	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/os/unix/ngx_process.c	2013-07-26 08:17:34.444558773 +0200
-@@ -35,6 +35,10 @@
+diff --git a/src/os/unix/ngx_process.c b/src/os/unix/ngx_process.c
+index a1454b6..421dd51 100644
+--- a/src/os/unix/ngx_process.c
++++ b/src/os/unix/ngx_process.c
+@@ -32,6 +32,10 @@ ngx_socket_t     ngx_channel;
  ngx_int_t        ngx_last_process;
  ngx_process_t    ngx_processes[NGX_MAX_PROCESSES];
  
@@ -649,10 +420,25 @@ diff -ur nginx-1.5.2/src/os/unix/ngx_process.c nginx-1.5.2_extended_status/src/o
  
  ngx_signal_t  signals[] = {
      { ngx_signal_value(NGX_RECONFIGURE_SIGNAL),
-diff -ur nginx-1.5.2/src/os/unix/ngx_process_cycle.c nginx-1.5.2_extended_status/src/os/unix/ngx_process_cycle.c
---- nginx-1.5.2/src/os/unix/ngx_process_cycle.c	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/os/unix/ngx_process_cycle.c	2013-07-26 08:17:34.445558646 +0200
-@@ -237,6 +237,15 @@
+diff --git a/src/os/unix/ngx_process.h b/src/os/unix/ngx_process.h
+index a34ca61..e926389 100644
+--- a/src/os/unix/ngx_process.h
++++ b/src/os/unix/ngx_process.h
+@@ -81,5 +81,9 @@ extern ngx_int_t      ngx_process_slot;
+ extern ngx_int_t      ngx_last_process;
+ extern ngx_process_t  ngx_processes[NGX_MAX_PROCESSES];
+ 
++#if (NGX_STAT_EXTENDED)
++extern ngx_int_t      old_ngx_last_process;
++extern ngx_process_t  old_ngx_processes[NGX_MAX_PROCESSES];
++#endif
+ 
+ #endif /* _NGX_PROCESS_H_INCLUDED_ */
+diff --git a/src/os/unix/ngx_process_cycle.c b/src/os/unix/ngx_process_cycle.c
+index a262ba5..b26426a 100644
+--- a/src/os/unix/ngx_process_cycle.c
++++ b/src/os/unix/ngx_process_cycle.c
+@@ -207,6 +207,15 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
  
              ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "reconfiguring");
  
@@ -668,7 +454,7 @@ diff -ur nginx-1.5.2/src/os/unix/ngx_process_cycle.c nginx-1.5.2_extended_status
              cycle = ngx_init_cycle(cycle);
              if (cycle == NULL) {
                  cycle = (ngx_cycle_t *) ngx_cycle;
-@@ -494,6 +503,64 @@
+@@ -424,6 +433,64 @@ ngx_signal_worker_processes(ngx_cycle_t *cycle, int signo)
  
      ch.fd = -1;
  
@@ -733,7 +519,7 @@ diff -ur nginx-1.5.2/src/os/unix/ngx_process_cycle.c nginx-1.5.2_extended_status
  
      for (i = 0; i < ngx_last_process; i++) {
  
-@@ -741,6 +808,21 @@
+@@ -673,6 +740,21 @@ ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data)
  
      ngx_setproctitle("worker process");
  
@@ -753,18 +539,5 @@ diff -ur nginx-1.5.2/src/os/unix/ngx_process_cycle.c nginx-1.5.2_extended_status
 +#endif
 +
  #if (NGX_THREADS)
-     {
-     ngx_int_t         n;
-diff -ur nginx-1.5.2/src/os/unix/ngx_process.h nginx-1.5.2_extended_status/src/os/unix/ngx_process.h
---- nginx-1.5.2/src/os/unix/ngx_process.h	2013-07-02 14:28:51.000000000 +0200
-+++ nginx-1.5.2_extended_status/src/os/unix/ngx_process.h	2013-07-26 08:17:34.446558519 +0200
-@@ -84,5 +84,9 @@
- extern ngx_int_t      ngx_last_process;
- extern ngx_process_t  ngx_processes[NGX_MAX_PROCESSES];
  
-+#if (NGX_STAT_EXTENDED)
-+extern ngx_int_t      old_ngx_last_process;
-+extern ngx_process_t  old_ngx_processes[NGX_MAX_PROCESSES];
-+#endif
- 
- #endif /* _NGX_PROCESS_H_INCLUDED_ */
+     ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_core_module);
