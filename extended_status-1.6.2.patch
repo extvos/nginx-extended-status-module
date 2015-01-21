@@ -12,6 +12,23 @@ index 6b6e3b3..44dc5bc 100644
  
      /* disable warning: Win32 SOCKET is u_int while UNIX socket is int */
  
+@@ -866,8 +869,16 @@ ngx_get_connection(ngx_socket_t s, ngx_l
+     rev = c->read;
+     wev = c->write;
+ 
++#if (NGX_STAT_EXTENDED)
++    cs = c->cs;
++#endif
++
+     ngx_memzero(c, sizeof(ngx_connection_t));
+ 
++#if (NGX_STAT_EXTENDED)
++    c->cs = cs;
++#endif
++
+     c->read = rev;
+     c->write = wev;
+     c->fd = s;
 diff --git a/src/core/ngx_connection.h b/src/core/ngx_connection.h
 index ed14e60..21b6b38 100644
 --- a/src/core/ngx_connection.h
