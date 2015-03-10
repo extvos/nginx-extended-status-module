@@ -28,7 +28,7 @@ install:
   - cd "nginx-${VER_NGINX}"
   - if [ ${VER_NGINX} == "0.8.55" ]; then VER_PATCH="0.8.54"; else VER_PATCH="${VER_NGINX}"; fi
   - patch -p1 < "../../extended_status-${VER_PATCH}.patch"
-  - if [ ${VER_NGINX} == "0.8.54" ]; then sed -i '/CFLAGS="$CFLAGS -Werror"/c\# CFLAGS="$CFLAGS -Werror" # Treating warnings as errors breaks Nginx build in older versions.' auto/cc/gcc; fi
+  - sed -i '/CFLAGS="$CFLAGS -Werror"/c\# CFLAGS="$CFLAGS -Werror" # Treating warnings as errors breaks Nginx build in older versions.' auto/cc/gcc; || echo "Not applicable..."
   - ./configure --add-module=../../
   - sudo make install
   - export PATH=$PATH:/usr/local/nginx/sbin
